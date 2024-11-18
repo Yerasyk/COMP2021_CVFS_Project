@@ -1,6 +1,8 @@
 package hk.edu.polyu.comp.comp2021.cvfs.model;
 
-public class VirtualDisk {
+import java.io.Serializable;
+
+public class VirtualDisk implements Serializable {
     private final int maxSize;
     private final Directory root;
     private Directory currentDirectory;
@@ -13,10 +15,6 @@ public class VirtualDisk {
 
     public int getRemainedSize() {
         return maxSize - root.getSize();
-    }
-
-    public int getMaxSize() {
-        return this.maxSize;
     }
 
     public Directory getCurrentDirectory() {
@@ -38,51 +36,6 @@ public class VirtualDisk {
                 }
             }
             throw new IllegalArgumentException("Directory with the name '" + dirName + "' does not exist.");
-        }
-    }
-
-    public void listFiles() {
-        int totalFiles = 0;
-        int totalSize = 0;
-
-        for (File file : currentDirectory.getFiles()) {
-            if (file instanceof Document) {
-                System.out.println( file.getName() + "." + ((Document)file).getType() + ", Size: " + file.getSize());
-            } else if (file instanceof Directory) {
-                System.out.println( file.getName() + ", Size: " + file.getSize());
-            }
-            totalFiles++;
-            totalSize += file.getSize();
-        }
-
-        System.out.println("\nTotal Files: " + totalFiles);
-        System.out.println("Total Size: " + totalSize);
-    }
-
-    public void recursiveListFiles() {
-        int[] totals = {0, 0}; // Array to store total file count and size
-        recursiveList(currentDirectory, 0, totals);
-
-        System.out.println("\nTotal Files: " + totals[0]);
-        System.out.println("Total Size: " + totals[1]);
-    }
-
-    private void recursiveList(Directory directory, int level, int[] totals) {
-        for (File file : directory.getFiles()) {
-            StringBuilder indent= new StringBuilder();
-            for(int i=0;i<level;i++){
-                indent.append("  ");
-            }
-
-            if (file instanceof Document) {
-                System.out.println(indent + file.getName() + "." + ((Document)file).getType() + ", Size: " + file.getSize());
-            } else if (file instanceof Directory) {
-                System.out.println(indent + file.getName() + ", Size: " + file.getSize());
-                recursiveList((Directory) file, level + 1, totals); // Recurse into subdirectory
-            }
-
-            totals[0]++;
-            totals[1] += file.getSize();
         }
     }
 }

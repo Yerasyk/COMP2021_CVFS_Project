@@ -1,10 +1,18 @@
 package hk.edu.polyu.comp.comp2021.cvfs.model;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.io.*;
+
 public class CVFS {
     private VirtualDisk disk;
+    private final Map<String, Criterion> criterionMap;
 
     public CVFS(){
-        this.disk= null;
+        this.disk = null;
+        criterionMap = new HashMap<>();
+        Criterion isDocument = new IsDocumentCriterion();
+        criterionMap.put("IsDocumentCriterion", isDocument);
     }
 
     public void createDisk(int maxSize){
@@ -56,16 +64,92 @@ public class CVFS {
 
     public void list(){
         ensureDiskExists();
-        disk.listFiles();
+        disk.getCurrentDirectory().listFiles();
+    }
+    //Search is the overloaded method of list
+    public void list(String criName){
+        ensureDiskExists();
+        Criterion criterion = criterionMap.get(criName);
+        disk.getCurrentDirectory().listFiles(criterion);
     }
 
     public void recursiveList(){
         ensureDiskExists();
-        disk.recursiveListFiles();
+        disk.getCurrentDirectory().recursiveListFiles();
+    }
+    //Recursive search is the overloaded method of recursiveList
+    public void recursiveList(String criName){
+        ensureDiskExists();
+        Criterion criterion = criterionMap.get(criName);
+        disk.getCurrentDirectory().recursiveListFiles(criterion);
+    }
+
+    public void createSimpleCri(String criName,String attrName,String op,String val){
+        if(criterionMap.containsKey(criName)){
+            throw new IllegalArgumentException("Criteria with this name already exists.");
+        }
+        Criterion criterion = new SimpleCriterion(criName, attrName, op, val);
+        criterionMap.put(criName, criterion);
+        System.out.println("Created simple criterion: " + criName);
+    }
+
+    public void createNegationCri(String criName, String criterion1){
+        if (!criterionMap.containsKey(criterion1)) {
+            throw new IllegalArgumentException("Criterion '" + criterion1 + "' does not exist.");
+        }
+        Criterion criterion = new NegationCriterion(criName, criterionMap.get(criterion1));
+        criterionMap.put(criName, criterion);
+        System.out.println("Created negation criterion: " + criName);
+    }
+
+    public void createBinaryCri(String criName, String criterion1, String logOp, String criterion2){
+        if (!(criterionMap.containsKey(criterion1) && criterionMap.containsKey(criterion2))) {
+            throw new IllegalArgumentException("Both criteria must exist.");
+        }
+        Criterion criterion = new BinaryCriterion(criName, criterionMap.get(criterion1), logOp, criterionMap.get(criterion2));
+        criterionMap.put(criName, criterion);
+        System.out.println("Created binary criterion: " + criName);
+    }
+
+    public void printAllCriterion(){
+        for (Criterion cri : criterionMap.values()){
+            System.out.println(cri);
+        }
+    }
+
+    public void saveDisk(String path){
+        ensureDiskExists();
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(path))) {
+            out.writeObject(disk);
+            System.out.println("Virtual disk saved to " + path);
+        } catch (IOException e) {
+            System.err.println("Error saving virtual disk: " + e.getMessage());
+        }
+    }
+
+    public void loadDisk(String path) {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(path))) {
+            disk = (VirtualDisk) in.readObject();
+            System.out.println("Virtual disk loaded from " + path);
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Error loading virtual disk: " + e.getMessage());
+        }
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //    Other methods
+    public String getWorkingDir(){
+        if (disk==null) return "";
+        StringBuilder res= new StringBuilder();
+        Directory workingDir= disk.getCurrentDirectory();
+        while (workingDir.getParent()!=null){
+            res.insert(0, "/"+workingDir.getName());
+            workingDir=workingDir.getParent();
+        }
+        res.insert(0,"$");
+        return res.toString();
+    }
+
     public void showRemainedSpace(){
         ensureDiskExists();
         System.out.println("Free space: " + disk.getRemainedSize() + " bytes");

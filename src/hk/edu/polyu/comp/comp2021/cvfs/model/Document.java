@@ -1,6 +1,8 @@
 package hk.edu.polyu.comp.comp2021.cvfs.model;
 
-public class Document extends File {
+import java.io.Serializable;
+
+public class Document extends File implements Serializable {
     private String type;
     private String content;
 

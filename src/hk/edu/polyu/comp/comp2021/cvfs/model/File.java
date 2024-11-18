@@ -1,6 +1,8 @@
 package hk.edu.polyu.comp.comp2021.cvfs.model;
 
-public class File {
+import java.io.Serializable;
+
+public class File implements Serializable {
     private String name;
 
     public File(String name){
