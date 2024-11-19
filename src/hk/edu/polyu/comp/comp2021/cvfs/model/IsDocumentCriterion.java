@@ -1,6 +1,8 @@
 package hk.edu.polyu.comp.comp2021.cvfs.model;
 
-public class IsDocumentCriterion extends Criterion{
+import java.io.Serializable;
+
+public class IsDocumentCriterion extends Criterion implements Serializable {
     public IsDocumentCriterion(){
         super("IsDocument");
     }

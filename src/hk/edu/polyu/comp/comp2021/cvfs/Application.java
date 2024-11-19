@@ -1,6 +1,7 @@
 package hk.edu.polyu.comp.comp2021.cvfs;
 
 import hk.edu.polyu.comp.comp2021.cvfs.model.CVFS;
+import hk.edu.polyu.comp.comp2021.cvfs.model.StateChangeCommandFailed;
 
 import java.util.Scanner;
 
@@ -11,8 +12,9 @@ public class Application {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("\n#####################################################################");
-        System.out.println("       Welcome to the Command-Line Virtual File System (CVFS).");
-        System.out.println("Type 'help' to see the list of commands or 'exit' to quit the application.");
+        System.out.println("       Welcome to the Comp Virtual File System (CVFS).");
+        System.out.println("\nType 'help' to see the list of commands or 'quit' to quit the application.");
+        System.out.println("To start: create new disk or load existing disk.");
 
         while (true) {
             System.out.print(cvfs.getWorkingDir()+"> ");
@@ -123,11 +125,11 @@ public class Application {
                         cvfs.recursiveList(params);
                         break;
                     //REQ15
-                    case"save":
+                    case"save": //for convenience end with.dat
                         if (params.isEmpty()) {
                             throw new IllegalArgumentException("Usage: save <path>");
                         }
-                        cvfs.saveDisk(params);
+                        cvfs.saveDisk(params, false);
                         break;
                     //REQ16
                     case"load":
@@ -135,6 +137,20 @@ public class Application {
                             throw new IllegalArgumentException("Usage: load <path>");
                         }
                         cvfs.loadDisk(params);
+                        break;
+                    //BON1 (loading will identify if there is any Criteria saved)
+                    case "cSave": //for convenience end with.datc
+                        if (params.isEmpty()){
+                            throw new IllegalArgumentException("Usage: cSave <path>");
+                        }
+                        cvfs.saveDisk(params,true);
+                        break;
+                    //BON2
+                    case "undo":
+                        cvfs.undo();
+                        break;
+                    case "redo":
+                        cvfs.redo();
                         break;
                     //REQ17
                     case "quit":
@@ -144,7 +160,6 @@ public class Application {
                     case "rSpace":
                         cvfs.showRemainedSpace();
                         break;
-
                     case "help":
                         printHelp();
                         break;
@@ -157,6 +172,9 @@ public class Application {
                 System.out.println("Error: Invalid number format. Please enter a valid number.");
             } catch (IllegalArgumentException e) {
                 System.out.println("Error: " + e.getMessage());
+            } catch (StateChangeCommandFailed e){
+                System.out.println("Error: "+ e.getMessage());
+                cvfs.handleStateChangeCommandFailed();
             } catch (Exception e) {
                 System.out.println("An unexpected error occurred: " + e.getMessage());
             }
@@ -164,25 +182,31 @@ public class Application {
     }
 
     private static void printHelp() {
-        System.out.println("\nAvailable Commands:");
-        System.out.println("  newDisk <size>            - Create a new virtual disk with the specified size.");
-        System.out.println("  newDoc <name> <type> <content> - Create a new document in the current directory.");
-        System.out.println("  newDir <name>             - Create a new directory in the current directory.");
-        System.out.println("  delete <name>             - Delete a file or directory by name.");
-        System.out.println("  rename <oldName> <newName> - Rename an existing file or directory.");
-        System.out.println("  changeDir <dirName>       - Change the working directory to the specified directory.");
-        System.out.println("  list                      - List all files and directories in the current directory.");
-        System.out.println("  rList                     - Recursively list all files and directories.");
-        System.out.println("  rSpace                    - Show the remaining space in the virtual disk.");
+        System.out.println("\n#####################################################################");
+        System.out.println("Available Commands:");
+        System.out.println("  newDisk <size>                  - Create a new virtual disk with the specified size.");
+        System.out.println("  newDoc <name> <type> <content>  - Create a new document in the current directory.");
+        System.out.println("  newDir <name>                   - Create a new directory in the current directory.");
+        System.out.println("  delete <name>                   - Delete a file or directory by name.");
+        System.out.println("  rename <oldName> <newName>      - Rename an existing file or directory.");
+        System.out.println("  changeDir <dirName>             - Change the working directory to the specified directory.");
+        System.out.println("  list                            - List all files and directories in the current directory.");
+        System.out.println("  rList                           - Recursively list all files and directories.");
+        System.out.println("  rSpace                          - Show the remaining space in the virtual disk.");
         System.out.println("  newSimpleCri <criName> <attrName> <op> <val> - Create a simple search criterion.");
         System.out.println("  newNegation <criName1> <criName2> - Create a negation criterion.");
         System.out.println("  newBinaryCri <criName1> <criName2> <logicOp> - Create a binary (AND/OR) criterion.");
-        System.out.println("  printAllCriteria          - Print all defined criteria.");
-        System.out.println("  search <criName>          - Search for files in the current directory based on a criterion.");
-        System.out.println("  rSearch <criName>         - Recursively search for files based on a criterion.");
-        System.out.println("  save <path>               - Save the virtual disk to a file.");
-        System.out.println("  load <path>               - Load the virtual disk from a file.");
-        System.out.println("  quit                      - Exit the application.");
-        System.out.println("  help                      - Display this help message.\n");
+        System.out.println("  printAllCriteria                - Print all defined criteria.");
+        System.out.println("  search <criName>                - Search for files in the current directory based on a criterion.");
+        System.out.println("  rSearch <criName>               - Recursively search for files based on a criterion.");
+        System.out.println("  save <path>                     - Save the virtual disk to a file (excluding criteria). End with '.dat' for convenience.");
+        System.out.println("  cSave <path>                    - Save the virtual disk and all criteria to a file. End with '.datc' for convenience.");
+        System.out.println("  load <path>                     - Load the virtual disk from a file (identifies criteria automatically).");
+        System.out.println("  undo                            - Undo the last operation.");
+        System.out.println("  redo                            - Redo the last undone operation.");
+        System.out.println("  quit                            - Exit the application.");
+        System.out.println("  help                            - Display this help message.");
+        System.out.println("#####################################################################");
     }
+
 }

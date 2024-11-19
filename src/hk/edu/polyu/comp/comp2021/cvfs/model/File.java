@@ -9,12 +9,12 @@ public class File implements Serializable {
         this.setName(name);
     }
 
-    public void setName(String name) throws IllegalArgumentException{
-        if (!name.matches("^[a-zA-Z0-9]*$")) {
-            throw new IllegalArgumentException("File name can only contain letters and digits.");
-        }
+    public void setName(String name){
         if (name.length() > 10) {
-            throw new IllegalArgumentException("File name must not exceed 10 characters.");
+            throw new StateChangeCommandFailed("File name must not exceed 10 characters.");
+        }
+        if (!name.matches("^[a-zA-Z0-9]*$")) {
+            throw new StateChangeCommandFailed("File name can only contain letters and digits.");
         }
         // Ensure it is not empty; assign a default name if necessary
         this.name = name;

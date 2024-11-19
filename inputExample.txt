@@ -1,0 +1,14 @@
+newDisk 1000
+newDoc file1 txt "Hello, World"
+newDir folder1
+newDoc file2 java "System.out.println('Test');"
+newDir folder2
+changeDir folder2
+newDoc file3 css "body { background-color: black; }"
+newDir folder3
+changeDir ..
+newSimpleCri nm name contains "file"
+search IsDocument
+search nm
+rSearch IsDocument
+rSearch nm

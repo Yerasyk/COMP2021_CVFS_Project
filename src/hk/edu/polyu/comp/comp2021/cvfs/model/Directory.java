@@ -26,11 +26,10 @@ public class Directory extends File implements Serializable {
         return parent;
     }
 
-    public void addFile(File file) throws IllegalArgumentException {
-        for (File existingFile : files) {
-            if (existingFile.getName().equals(file.getName())) {
-                throw new IllegalArgumentException("A file with the name '" + file.getName() + "' already exists.");
-            }
+    public void addFile(File file) {
+        File foundFile=findFile(file);
+        if (foundFile!=null) {
+            throw new StateChangeCommandFailed("A file with the name '" + file.getName() + "' already exists.");
         }
         files.add(file);
         if (file instanceof Directory) {
@@ -38,29 +37,32 @@ public class Directory extends File implements Serializable {
         }
     }
 
-    public void removeFile(String fileName) throws IllegalArgumentException {
-        File fileToRemove = null;
-        for (File file : files) {
-            if (file.getName().equals(fileName)) {
-                fileToRemove = file;
-                break;
-            }
+    public void removeFile(String fileName){
+        File foundFile = findFile(fileName);
+        if(foundFile==null){
+            throw new StateChangeCommandFailed("A file with the name '" + fileName + "' doesn't exist.");
         }
-        if (fileToRemove != null) {
-            files.remove(fileToRemove);
-        } else {
-            throw new IllegalArgumentException("A file with the name '" + fileName + "' doesn't exist.");
-        }
+        files.remove(foundFile);
     }
 
-    public void renameFile(String oldFileName, String newFileName) throws IllegalArgumentException {
-        for (File file : files) {
-            if (file.getName().equals(oldFileName)) {
-                file.setName(newFileName);
-                return;
-            }
+    public void renameFile(String oldFileName, String newFileName){
+        File foundFile=findFile(oldFileName);
+        if(foundFile==null) {
+            throw new StateChangeCommandFailed("A file with the name '" + oldFileName + "' does not exist.");
         }
-        throw new IllegalArgumentException("A file with the name '" + oldFileName + "' does not exist.");
+        foundFile.setName(newFileName);
+    }
+    public File findFile(File file){
+        for (File existingFile : files) {
+            if (existingFile.getName().equals(file.getName())) {return existingFile;}
+        }
+        return null;
+    }
+    public File findFile(String fileName){
+        for (File existingFile : files) {
+            if (existingFile.getName().equals(fileName)) {return existingFile;}
+        }
+        return null;
     }
 
     public void listFiles() {

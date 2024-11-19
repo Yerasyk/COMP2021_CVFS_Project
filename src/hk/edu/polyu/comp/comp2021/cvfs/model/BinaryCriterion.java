@@ -1,6 +1,8 @@
 package hk.edu.polyu.comp.comp2021.cvfs.model;
 
-public class BinaryCriterion extends Criterion{
+import java.io.Serializable;
+
+public class BinaryCriterion extends Criterion implements Serializable {
     private final Criterion criterionF;
     private final Criterion criterionS;
     private final String logicOp;
@@ -10,7 +12,7 @@ public class BinaryCriterion extends Criterion{
         criterionF = criterion1;
         criterionS = criterion2;
         if(!(logOp.equals("&&")||logOp.equals("||"))){
-            throw new IllegalArgumentException("Logical operator must be either \"&&\" or \"||\"");
+            throw new StateChangeCommandFailed("Logical operator must be either \"&&\" or \"||\"");
         }
         logicOp = logOp;
     }

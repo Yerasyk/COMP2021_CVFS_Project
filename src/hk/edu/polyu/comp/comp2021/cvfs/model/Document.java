@@ -12,9 +12,9 @@ public class Document extends File implements Serializable {
         this.content=content;
     }
 
-    private void setType(String type) throws IllegalArgumentException{
+    private void setType(String type){
         if (!type.matches("^(txt|java|html|css)$")) {
-            throw new IllegalArgumentException("File type must be one of the following: txt, java, html, css.");
+            throw new StateChangeCommandFailed("File type must be one of the following: txt, java, html, css.");
         }
         this.type=type;
     }

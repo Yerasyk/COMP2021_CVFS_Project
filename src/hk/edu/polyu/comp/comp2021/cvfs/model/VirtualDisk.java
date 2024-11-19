@@ -21,12 +21,12 @@ public class VirtualDisk implements Serializable {
         return currentDirectory;
     }
 
-    public void changeDirectory(String dirName) throws IllegalArgumentException {
+    public void changeDirectory(String dirName){
         if (dirName.equals("..")) {
             if (currentDirectory != root) {
                 currentDirectory = currentDirectory.getParent();
             } else {
-                throw new IllegalArgumentException("Already at root directory.");
+                throw new StateChangeCommandFailed("Already at root directory.");
             }
         } else {
             for (File file : currentDirectory.getFiles()) {
@@ -35,7 +35,7 @@ public class VirtualDisk implements Serializable {
                     return;
                 }
             }
-            throw new IllegalArgumentException("Directory with the name '" + dirName + "' does not exist.");
+            throw new StateChangeCommandFailed("Directory with the name '" + dirName + "' does not exist.");
         }
     }
 }

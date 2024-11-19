@@ -1,6 +1,8 @@
 package hk.edu.polyu.comp.comp2021.cvfs.model;
 
-public class NegationCriterion extends Criterion {
+import java.io.Serializable;
+
+public class NegationCriterion extends Criterion implements Serializable {
     private final Criterion innerCriterion;
 
     public NegationCriterion(String criName, Criterion criterion){
