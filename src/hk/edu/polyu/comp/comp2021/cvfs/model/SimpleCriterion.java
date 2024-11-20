@@ -27,7 +27,7 @@ public class SimpleCriterion extends Criterion implements Serializable {
                     throw new StateChangeCommandFailed("If attrName=type, then op must be \"equals\".");
                 }
                 if(!val.matches("^\"[^\"]*\"$")){
-                    throw new StateChangeCommandFailed("If attrName=name, then value must be a string in double quotes.");
+                    throw new StateChangeCommandFailed("If attrName=type, then value must be a string in double quotes.");
                 }
                 break;
             case "size":

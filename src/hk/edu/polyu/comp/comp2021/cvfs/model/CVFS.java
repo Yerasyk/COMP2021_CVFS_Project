@@ -257,4 +257,12 @@ public class CVFS {
             throw new IllegalArgumentException("No disk exists. Create new or load one.");
         }
     }
+
+    public VirtualDisk getDisk() {
+        return disk;
+    }
+
+    public Map<String, Criterion> getCriterionMap() {
+        return criterionMap;
+    }
 }
