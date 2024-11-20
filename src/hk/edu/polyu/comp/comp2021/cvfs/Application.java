@@ -5,8 +5,17 @@ import hk.edu.polyu.comp.comp2021.cvfs.model.StateChangeCommandFailed;
 
 import java.util.Scanner;
 
+/**
+ * The entry point of the application.
+ * Provides a command-line interface for interacting with the CVFS system.
+ */
 public class Application {
-
+    /**
+     * The main method that starts the application.
+     * Initializes a CVFS instance and sets up a Scanner for user input.
+     *
+     * @param args Command-line arguments passed to the program (not used).
+     */
     public static void main(String[] args) {
         CVFS cvfs = new CVFS();
         Scanner scanner = new Scanner(System.in);

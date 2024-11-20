@@ -1,10 +1,8 @@
 package hk.edu.polyu.comp.comp2021.cvfs.model;
 
 import org.junit.Test;
-
-import java.io.*;
-
 import static org.junit.Assert.*;
+import java.io.*;
 
 public class CVFSTest {
 
@@ -14,6 +12,19 @@ public class CVFSTest {
         cvfs.createDisk(1000);
 
         assertEquals("Remaining space should decrease after document creation", 960, cvfs.getDisk().getRemainedSize());
+    }
+    @Test
+    public void testCreateDiskTwice() {
+        CVFS cvfs = new CVFS();
+        cvfs.createDisk(1000);
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream("No\n".getBytes());
+        System.setIn(inputStream);
+
+        cvfs.createDisk(500); // Should cancel the operation
+        System.setIn(System.in);
+
+        assertEquals("Disk size should remain unchanged", 1000, cvfs.getDisk().getRemainedSize() + cvfs.getDisk().getCurrentDirectory().getSize());
     }
 
     @Test
@@ -44,19 +55,6 @@ public class CVFSTest {
     }
 
     @Test
-    public void testUndoRedoOperations() {
-        CVFS cvfs = new CVFS();
-        cvfs.createDisk(1000);
-
-        cvfs.createDirectory("subdir");
-        cvfs.undo();
-        assertNull("Undo should remove 'subdir' from the working directory contents", cvfs.getDisk().getCurrentDirectory().findFile("subdir"));
-
-        cvfs.redo();
-        assertNotNull("Redo should restore 'subdir' in the working directory contents", cvfs.getDisk().getCurrentDirectory().findFile("subdir"));
-    }
-
-    @Test
     public void testRecursiveListingWithCriterion() {
         CVFS cvfs = new CVFS();
         cvfs.createDisk(1000);
@@ -81,6 +79,42 @@ public class CVFSTest {
         assertTrue("Output should contain doc2.txt", output.contains("doc2.txt"));
     }
 
+    @Test
+    public void testRecursiveListWithoutCriterion() {
+        CVFS cvfs = new CVFS();
+        cvfs.createDisk(1000);
+
+        cvfs.createDirectory("dir1");
+        cvfs.changeDir("dir1");
+        cvfs.createDocument("doc1", "txt", "Content of doc1");
+        cvfs.changeDir("..");
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        cvfs.recursiveList();
+        System.setOut(originalOut);
+
+        String output = outputStream.toString();
+        assertTrue("Output should contain dir1", output.contains("dir1"));
+        assertTrue("Output should contain doc1", output.contains("doc1"));
+    }
+
+    @Test
+    public void testEmptyDirectoryListing() {
+        CVFS cvfs = new CVFS();
+        cvfs.createDisk(1000);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        cvfs.list();
+        System.setOut(originalOut);
+
+        String output = outputStream.toString();
+        assertTrue("Output should indicate no files", output.contains("Total files: 0"));
+    }
+
     @Test(expected = StateChangeCommandFailed.class)
     public void testCreateOversizedDocument() {
         CVFS cvfs = new CVFS();
@@ -90,7 +124,7 @@ public class CVFSTest {
     }
 
     @Test
-    public void testSaveAndLoad(){
+    public void testSaveDiskWithCriteriaAndLoad(){
         CVFS cvfs = new CVFS();
         cvfs.createDisk(1000);
 
@@ -114,6 +148,26 @@ public class CVFSTest {
 
         //It doesn't check values of criteriaMaps.
         assertTrue("They should have same criteria", cvfs.getCriterionMap().keySet().equals(cvfsLoaded.getCriterionMap().keySet()));
+    }
+
+    @Test
+    public void testSaveDiskWithoutCriteria() {
+        CVFS cvfs = new CVFS();
+        cvfs.createDisk(1000);
+
+        String filePath = "testDiskNoCriteria.dat";
+        cvfs.saveDisk(filePath, false);
+
+        CVFS cvfsLoaded = new CVFS();
+        cvfsLoaded.loadDisk(filePath);
+
+        assertEquals("Loaded disk should have the same remaining space", cvfs.getDisk().getRemainedSize(), cvfsLoaded.getDisk().getRemainedSize());
+        assertTrue("Loaded disk should have default criteria only", cvfsLoaded.getCriterionMap().containsKey("IsDocument"));
+    }
+
+    @Test(expected = StateChangeCommandFailed.class)
+    public void testInvalidSimpleCriterion() {
+        new SimpleCriterion("sc", "name", "equals", "\"invalid\"");
     }
 
     @Test
@@ -158,5 +212,55 @@ public class CVFSTest {
         Document doc2 = new Document("otherFile2", "txt", "content");
         assertFalse(criterion.matches(doc2));
         assertTrue(negationCriterion.matches(doc2));
+    }
+
+    @Test(expected = StateChangeCommandFailed.class)
+    public void testChangeToNonExistentDirectory() {
+        CVFS cvfs = new CVFS();
+        cvfs.createDisk(1000);
+        cvfs.changeDir("nonExistentDir");
+    }
+
+    @Test
+    public void testUndoRedoOperations() {
+        CVFS cvfs = new CVFS();
+        cvfs.createDisk(1000);
+
+        cvfs.createDirectory("subdir");
+        cvfs.undo();
+        assertNull("Undo should remove 'subdir' from the working directory contents", cvfs.getDisk().getCurrentDirectory().findFile("subdir"));
+
+        cvfs.redo();
+        assertNotNull("Redo should restore 'subdir' in the working directory contents", cvfs.getDisk().getCurrentDirectory().findFile("subdir"));
+    }
+
+    @Test
+    public void testUndoWithoutHistory() {
+        CVFS cvfs = new CVFS();
+        cvfs.createDisk(1000);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        cvfs.undo(); // Should print "There is nothing to undo."
+        System.setOut(originalOut);
+
+        assertTrue("Output should mention no undo available", outputStream.toString().contains("There is nothing to undo."));
+    }
+
+    @Test
+    public void testRedoWithoutUndo() {
+        CVFS cvfs = new CVFS();
+        cvfs.createDisk(1000);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        cvfs.redo(); // Should print "There is nothing to redo."
+        System.setOut(originalOut);
+
+        assertTrue("Output should mention no redo available", outputStream.toString().contains("There is nothing to redo."));
     }
 }
